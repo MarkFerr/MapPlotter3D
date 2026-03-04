@@ -103,20 +103,17 @@ def create_obj_from_data(year, month, dataname, location=None):
 
 
 def main():
-
-    
-
-    # global height_factor
-    # data_reader.load()  #load all files from 2014 - 2023
-    # year_to_inspect = 2014
-    # month_to_inspect = 12
-    # data_to_inspect = 'destinationID'
-    # id_to_inspect = 3   # only needed, if data_to_inspect == destinationID or originID
-    # create_obj_from_data(year_to_inspect, month_to_inspect, data_to_inspect, id_to_inspect)    #create .obj files from specific year, month, data to be inspected and if needed specific location that is to be looked at (for originID & destinationID)
-    # #create_obj_from_data(2014,4,'total_trip_count',)    #create .obj files from specific year, month, data to be inspected and if needed specific location that is to be looked at (for originID & destinationID)
-    # unit = ''   #Unit of data to be shown
-    # #plot_objects.plot_saved_obj_vedo(norm, height_factor, unit, False,True , id_to_inspect)  #plot the .obj files with a normalized height, to "norm", add height factor to recreate value, add unit to show unit, add Arrows??, origin of arrows
-    # plot_objects.plot_saved_obj_vedo(norm, height_factor, unit, False,True , id_to_inspect)
+    global height_factor
+    data_reader.load()  #load all files from 2014 - 2023
+    year_to_inspect = 2014
+    month_to_inspect = 12
+    data_to_inspect = 'destinationID'
+    id_to_inspect = 3   # only needed, if data_to_inspect == destinationID or originID
+    create_obj_from_data(year_to_inspect, month_to_inspect, data_to_inspect, id_to_inspect)    #create .obj files from specific year, month, data to be inspected and if needed specific location that is to be looked at (for originID & destinationID)
+    #create_obj_from_data(2014,4,'total_trip_count',)    #create .obj files from specific year, month, data to be inspected and if needed specific location that is to be looked at (for originID & destinationID)
+    unit = ''   #Unit of data to be shown
+    #plot_objects.plot_saved_obj_vedo(norm, height_factor, unit, False,True , id_to_inspect)  #plot the .obj files with a normalized height, to "norm", add height factor to recreate value, add unit to show unit, add Arrows??, origin of arrows
+    plot_objects.plot_saved_obj_vedo(norm, height_factor, unit, False,True , id_to_inspect)
 
 if __name__ == "__main__":
     main()
