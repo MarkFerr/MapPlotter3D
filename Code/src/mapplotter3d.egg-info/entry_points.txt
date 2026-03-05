@@ -1,0 +1,2 @@
+[console_scripts]
+mapplotter3d = mapplotter3d.main:main

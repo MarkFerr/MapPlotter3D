@@ -1,0 +1,20 @@
+Metadata-Version: 2.4
+Name: mapplotter3d
+Version: 0.1.0
+Summary: 3D visualization and processing of geospatial data
+Author: Your Name
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: numpy>=2.4
+Requires-Dist: pandas>=3.0
+Requires-Dist: geopandas>=1.1
+Requires-Dist: matplotlib>=3.10
+Requires-Dist: shapely>=2.1
+Requires-Dist: pyproj>=3.7
+Requires-Dist: pyogrio>=0.12
+Requires-Dist: vedo>=2026.6
+Requires-Dist: vtk>=9.6
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
+Requires-Dist: ruff>=0.4; extra == "dev"
+Requires-Dist: black>=24.0; extra == "dev"

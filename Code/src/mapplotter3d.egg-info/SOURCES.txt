@@ -1,0 +1,12 @@
+pyproject.toml
+src/mapplotter3d/__init__.py
+src/mapplotter3d/main.py
+src/mapplotter3d.egg-info/PKG-INFO
+src/mapplotter3d.egg-info/SOURCES.txt
+src/mapplotter3d.egg-info/dependency_links.txt
+src/mapplotter3d.egg-info/entry_points.txt
+src/mapplotter3d.egg-info/requires.txt
+src/mapplotter3d.egg-info/top_level.txt
+src/mapplotter3d/io/data_reader.py
+src/mapplotter3d/utils/text_normalization.py
+src/mapplotter3d/validation/data_row_checks.py

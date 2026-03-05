@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "mapplotter3d"
+version = "0.1.0"
+description = "3D visualization and processing of geospatial data"
+readme = "README.md"
+requires-python = ">=3.11"
+
+authors = [
+  {name = "Your Name"}
+]
+
+dependencies = [
+  "numpy>=2.4",
+  "pandas>=3.0",
+  "geopandas>=1.1",
+  "matplotlib>=3.10",
+  "shapely>=2.1",
+  "pyproj>=3.7",
+  "pyogrio>=0.12",
+  "vedo>=2026.6",
+  "vtk>=9.6"
+]
+
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.4",
+  "black>=24.0"
+]
+
+
+[project.scripts]
+mapplotter3d = "mapplotter3d.main:main"
+
+
+[tool.setuptools.packages.find]
+where = ["src"]

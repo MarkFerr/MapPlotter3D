@@ -1,6 +1,6 @@
 #import Files
 import geoJSON_to_3d_obj
-import data_reader
+import Code.src.io.data_reader as data_reader
 import plot_objects
 
 #normalize Plot to:

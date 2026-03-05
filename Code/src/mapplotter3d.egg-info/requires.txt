@@ -1,0 +1,14 @@
+numpy>=2.4
+pandas>=3.0
+geopandas>=1.1
+matplotlib>=3.10
+shapely>=2.1
+pyproj>=3.7
+pyogrio>=0.12
+vedo>=2026.6
+vtk>=9.6
+
+[dev]
+pytest>=8.0
+ruff>=0.4
+black>=24.0

@@ -1,7 +1,11 @@
 #import Files
-import geoJSON_to_3d_obj
-import data_reader
-import plot_objects
+import os
+import logging
+import sys
+
+from mapplotter3d.io.data_reader import read_file
+from validation.data_row_checks import check_missing_row_names
+
 
 #normalize Plot to:
 norm = 10000
@@ -9,26 +13,15 @@ norm = 10000
 #height factor to calculate data
 height_factor = 0
 
-data_names = ['LocationID', 'PUvendorID', 'DOvendorID', 'destinationID', 'originID', 
-              'avg_pickup_datetime','avg_dropof_datetime', 
-              'avg_leaving_passenger_count', 'avg_arriving_passenger_count', 'total_leaving_passenger_count', 'total_arriving_passenger_count', 
-              'avg_leaving_trip_distance', 'avg_arriving_trip_distance', 'total_leaving_trip_distance', 'total_arriving_trip_distance', 
-              'leaving_RateCodeID', 'arriving_RateCodeID', 'leaving_store_and_fwd_flag', 'arriving_store_and_fwd_flag', 
-              'leaving_payment_type', 'arriving_payment_type', 
-              'avg_leaving_fare_amount', 'avg_arriving_fare_amount', 'total_leaving_fare_amount', 'total_arriving_fare_amount', 
-              'avg_leaving_extra', 'avg_arriving_extra', 'total_leaving_extra', 'total_arriving_extra', 
-              'avg_leaving_mta_tax', 'avg_arriving_mta_tax', 'total_leaving_mta_tax', 'total_arriving_mta_tax', 
-              'avg_leaving_tip_amount', 'avg_arriving_tip_amount', 'total_leaving_tip_amount', 'total_arriving_tip_amount', 
-              'avg_leaving_tolls_amount', 'avg_arriving_tolls_amount', 'total_leaving_tolls_amount', 'total_arriving_tolls_amount', 
-              'avg_leaving_improvement_surcharge', 'avg_arriving_improvement_surcharge', 'total_leaving_improvement_surcharge', 'total_arriving_improvement_surcharge', 
-              'avg_leaving_total_amount', 'avg_arriving_total_amount', 'total_leaving_total_amount', 'total_arriving_total_amount', 
-              'avg_leaving_congestion_surcharge', 'avg_arriving_congestion_surcharge', 'total_leaving_congestion_surcharge', 'total_arriving_congestion_surcharge', 
-              'avg_leaving_airport_fee', 'avg_arriving_airport_fee', 'total_leaving_airport_fee', 'total_arriving_airport_fee', 
-              'avg_leaving_ehail_fee', 'avg_arriving_ehail_fee', 'total_leaving_ehail_fee', 'total_arriving_ehail_fee', 
-              'total_trip_count', 'trips_inside_Location', 'trips_outgoing_Location', 'trips_incoming_Location']
-
 max_height = 0
 
+
+def setup_logging(level: int = logging.INFO) -> None:
+    logging.basicConfig(
+        level=level,
+        format="%(levelname)s | %(name)s | %(message)s",    #%(asctime)s | 
+        handlers=[logging.StreamHandler(sys.stdout)],
+    )
 
 def create_obj_from_data(year, month, dataname, location=None):
     year_data = data_reader.y_pickle_files_dict[year]
@@ -103,7 +96,28 @@ def create_obj_from_data(year, month, dataname, location=None):
 
 
 def main():
+    data_path = os.path.join("Data", "Data", "municipality_test_data.csv")
+    geojson_path = os.path.join("Data", "Zone_maps", "geoBoundaries-DEU-ADM3.geojson")
+    plot_key = "population_test"
 
+
+    #* set Logging
+    setup_logging()
+
+    #* Load Data
+    #TODO get Path from call
+    data_path = "C:\\Users\\Mark\\VisualStudioProjects\\MapPlotter3D\\MapPlotter3D\\Data\\Data\\municipality_test_data.csv"#os.path.join("C:", "Users", "Mark", "VisualStudioProjects", "MapPlotter3D", "MapPlotter3D", "Data", "Data", "municipality_test_data.csv")
+    df = read_file(data_path)
+
+    #* Load GeoJSON
+    #TODO get Path from call
+    geojson_path = "C:\\Users\\Mark\\VisualStudioProjects\\MapPlotter3D\\MapPlotter3D\\Data\\Zone_maps\\geoBoundaries-DEU-ADM3.geojson"   #os.path.join("C:", "Users", "Mark", "VisualStudioProjects", "MapPlotter3D", "MapPlotter3D", "Data", "Zone_maps", "geoBoundaries-DEU-ADM3.geojson")
+    geo_df = read_file(geojson_path)
+
+    #* Check completeness
+    check_missing_row_names(df, geo_df)
+
+    #* Start plotting
     
 
     # global height_factor
