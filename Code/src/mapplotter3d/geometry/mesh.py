@@ -8,12 +8,16 @@ import logging
 
 from vedo import Mesh, show
 
+
+from mapplotter3d.utils.normalization import get_normalization, normalize_df
+
 logger = logging.getLogger(__name__)
 
 @dataclass
 class MeshResult:
     shape_id: int
     shape_name: str
+    value: float
     mesh: vtk.vtkPolyData
     top_indices:dict[str,np.ndarray]
 
@@ -44,25 +48,30 @@ class MeshResult:
 def build_meshes(gdf, df, data_key) -> list[MeshResult]:
     logger.info("Building Meshes")
 
+    #* Get value to Normalize to
+    max_height = get_normalization(gdf)
+
+    normalized_df = normalize_df(df, max_height)
+
     meshes = []
     for row in gdf.itertuples(index=False):
         geom = row.geometry
         shape_id = row.shapeID
         shape_name = row.shapeName
 
+        value = df.loc[df["municipality"] == shape_name, data_key].iloc[0]
+        normalized_value = normalized_df.loc[normalized_df["municipality"] == shape_name, data_key].iloc[0]
+
         if isinstance(geom,Polygon):
-            value = df.loc[df["municipality"] == shape_name, data_key].iloc[0]
-            mesh = mesh_from_polygon(poly=geom, height=value, shape_id=shape_id, shape_name=shape_name)
+            mesh, top_idx = mesh_from_polygon(poly=geom, height=normalized_value)
         elif isinstance(geom, MultiPolygon):
-            mesh = mesh_from_multipolygon(mp=geom, height=value, shape_id=shape_id, shape_name=shape_name)
+            mesh, top_idx = mesh_from_multipolygon(mp=geom, height=normalized_value)
         else:
             logger.info("Geometry type %s for %s not supported", type(geom), shape_name)
             continue
+        mesh_res = MeshResult(shape_id=shape_id, shape_name=shape_name, value=value, mesh=mesh, top_indices=top_idx)
 
-        if shape_name == "Rottweil":
-            mesh.set_height(1)
-
-        meshes.append(mesh)
+        meshes.append(mesh_res)
         # plot_mesh(mesh.mesh)
     logger.info("Built %i meshes", len(meshes))
     return meshes
@@ -70,34 +79,33 @@ def build_meshes(gdf, df, data_key) -> list[MeshResult]:
         # break
 
 
-def mesh_from_polygon(shape_id: str, shape_name: str, poly: Polygon, height: float) -> MeshResult:
-    #TODO make a function to generallize the height to normalize to, maybe average area?
-    polydata = _extrude_polygon_to_polydata(poly, height=0.1)#height=height)
+def mesh_from_polygon(poly: Polygon, height: float) -> MeshResult:
+    polydata = _extrude_polygon_to_polydata(poly, height=height)
 
     pts = vtk_to_numpy(polydata.GetPoints().GetData())
     z = pts[:, 2]
     zmax = float(z.max())
     top_idx = np.flatnonzero(np.isclose(z, zmax))
 
-    return MeshResult(shape_id=shape_id, shape_name=shape_name, mesh=polydata, top_indices=top_idx)
+    return polydata, top_idx #MeshResult(shape_id=shape_id, shape_name=shape_name, mesh=polydata, top_indices=top_idx)
 
 
-def mesh_from_multipolygon(mp: MultiPolygon, shape_id: str, shape_name: str, height: float) -> MeshResult:
-    append = vtk.vtkAppendPolyData()
-    for part in mp.geoms:
-        pd = _extrude_polygon_to_polydata(part, height=0.1)#height)
-        append.AddInputData(pd)
-    append.Update()
+def mesh_from_multipolygon(mp: MultiPolygon, height: float) -> MeshResult:
+    multi_poly = vtk.vtkAppendPolyData()
+    for poly in mp.geoms:
+        pd = _extrude_polygon_to_polydata(poly, height=height)
+        multi_poly.AddInputData(pd)
+    multi_poly.Update()
 
-    out = vtk.vtkPolyData()
-    out.ShallowCopy(append.GetOutput())
+    mesh = vtk.vtkPolyData()
+    mesh.ShallowCopy(multi_poly.GetOutput())
 
-    pts = vtk_to_numpy(out.GetPoints().GetData())
+    pts = vtk_to_numpy(mesh.GetPoints().GetData())
     z = pts[:, 2]
     zmax = float(z.max())
     top_idx = np.flatnonzero(np.isclose(z, zmax))
 
-    return MeshResult(shape_id=shape_id, shape_name=shape_name, mesh=out, top_indices=top_idx)
+    return mesh, top_idx
 
 
 def plot_mesh(polydata: vtk.vtkPolyData, title: str = "Mesh") -> None:

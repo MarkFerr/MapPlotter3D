@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 def check_missing_row_names(df, gdf):
+    #todo check if both directions needed!
     missing_names = missing_row_names(df, gdf)
     if missing_names:
         logger.warning("No Shapenames found for: %s", list(missing_names)[:20])

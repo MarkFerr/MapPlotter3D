@@ -11,7 +11,7 @@ def generate_plot(meshes):
         #todo get color automatically from palette depending on the value
         actor.c("lightblue").alpha(1.0).lw(0)
         actor.name = mesh.shape_name
-        actor.info = f"shape_id: {mesh.shape_id}\n"
+        actor.info = f"Shape_name: {mesh.shape_name}\nValue: {mesh.value}\nshape_id: {mesh.shape_id}"
         actors.append(actor)
 
     lBox = LegendBox()
