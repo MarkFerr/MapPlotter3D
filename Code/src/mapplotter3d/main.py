@@ -7,6 +7,7 @@ from pathlib import Path
 from mapplotter3d.io.data_reader import read_file
 from mapplotter3d.validation.data_row_checks import check_missing_row_names
 from mapplotter3d.geometry.mesh import build_meshes
+from mapplotter3d.utils.mesh_plotter import generate_plot
 
 
 #normalize Plot to:
@@ -21,7 +22,7 @@ max_height = 0
 def setup_logging(level: int = logging.INFO) -> None:
     logging.basicConfig(
         level=level,
-        format="%(levelname)s | %(name)s | %(message)s",    #%(asctime)s | 
+        format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",    #
         handlers=[logging.StreamHandler(sys.stdout)],
     )
 
@@ -42,12 +43,14 @@ def main():
     
     #* Load Data
     #TODO get Path from call
+    logger.info("Loading data")
     data_path = "C:\\Users\\Mark\\VisualStudioProjects\\MapPlotter3D\\MapPlotter3D\\Data\\Data\\municipality_test_data.csv"#os.path.join("C:", "Users", "Mark", "VisualStudioProjects", "MapPlotter3D", "MapPlotter3D", "Data", "Data", "municipality_test_data.csv")
     df = read_file(data_path)
     df_reduced = df[["municipality", plot_key]]
    
     #* Load GeoJSON
     #TODO get Path from call
+    logger.info("Loading map data")
     geojson_path = "C:\\Users\\Mark\\VisualStudioProjects\\MapPlotter3D\\MapPlotter3D\\Data\\Zone_maps\\geoBoundaries-DEU-ADM3.geojson"   #os.path.join("C:", "Users", "Mark", "VisualStudioProjects", "MapPlotter3D", "MapPlotter3D", "Data", "Zone_maps", "geoBoundaries-DEU-ADM3.geojson")
     geo_df = read_file(geojson_path)
 
@@ -57,6 +60,8 @@ def main():
     #* Generate Objects
     meshes = build_meshes(geo_df, df, plot_key)
 
+    #* Generate Plot
+    generate_plot(meshes)
 
 if __name__ == "__main__":
     main()

@@ -30,8 +30,20 @@ class MeshResult:
             f"\n\tcells={n_cells}, "
             f"\n\ttop_idx_count={n_top}"
         )
+    
+    def set_height(self, new_height: float) -> None:
+        polydata = self.mesh
+        points = polydata.GetPoints()
+        pts_np = vtk_to_numpy(points.GetData())
+
+        pts_np[self.top_indices, 2] = new_height
+
+        points.Modified()
+        polydata.Modified()
 
 def build_meshes(gdf, df, data_key) -> list[MeshResult]:
+    logger.info("Building Meshes")
+
     meshes = []
     for row in gdf.itertuples(index=False):
         geom = row.geometry
@@ -42,14 +54,18 @@ def build_meshes(gdf, df, data_key) -> list[MeshResult]:
             value = df.loc[df["municipality"] == shape_name, data_key].iloc[0]
             mesh = mesh_from_polygon(poly=geom, height=value, shape_id=shape_id, shape_name=shape_name)
         elif isinstance(geom, MultiPolygon):
-            mesh = mesh_from_multipolygon(geom, shape_id, shape_name)
+            mesh = mesh_from_multipolygon(mp=geom, height=value, shape_id=shape_id, shape_name=shape_name)
         else:
             logger.info("Geometry type %s for %s not supported", type(geom), shape_name)
             continue
 
+        if shape_name == "Rottweil":
+            mesh.set_height(1)
+
         meshes.append(mesh)
         # plot_mesh(mesh.mesh)
-
+    logger.info("Built %i meshes", len(meshes))
+    return meshes
         
         # break
 
@@ -66,10 +82,10 @@ def mesh_from_polygon(shape_id: str, shape_name: str, poly: Polygon, height: flo
     return MeshResult(shape_id=shape_id, shape_name=shape_name, mesh=polydata, top_indices=top_idx)
 
 
-def mesh_from_multipolygon(shape_id: str, shape_name: str, mp: MultiPolygon, height: float) -> MeshResult:
+def mesh_from_multipolygon(mp: MultiPolygon, shape_id: str, shape_name: str, height: float) -> MeshResult:
     append = vtk.vtkAppendPolyData()
     for part in mp.geoms:
-        pd = _extrude_polygon_to_polydata(part, height)
+        pd = _extrude_polygon_to_polydata(part, height=0.1)#height)
         append.AddInputData(pd)
     append.Update()
 
