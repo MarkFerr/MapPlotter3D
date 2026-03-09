@@ -13,11 +13,13 @@ from mapplotter3d.utils.normalization import get_normalization, normalize_df
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class MeshResult:
     shape_id: int
     shape_name: str
     value: float
+    plot_value: float
     mesh: vtk.vtkPolyData
     top_indices:dict[str,np.ndarray]
 
@@ -45,7 +47,15 @@ class MeshResult:
         points.Modified()
         polydata.Modified()
 
-def build_meshes(gdf, df, data_key) -> list[MeshResult]:
+
+@dataclass
+class MapResult:
+    max_value: float
+    map_name: str
+    map_objects: list[MeshResult]
+
+
+def build_meshes(gdf, df, data_key, map_name) -> list[MeshResult]:
     logger.info("Building Meshes")
 
     #* Get value to Normalize to
@@ -69,12 +79,13 @@ def build_meshes(gdf, df, data_key) -> list[MeshResult]:
         else:
             logger.info("Geometry type %s for %s not supported", type(geom), shape_name)
             continue
-        mesh_res = MeshResult(shape_id=shape_id, shape_name=shape_name, value=value, mesh=mesh, top_indices=top_idx)
+        mesh_res = MeshResult(shape_id=shape_id, shape_name=shape_name, value=value, plot_value=normalized_value, mesh=mesh, top_indices=top_idx)
 
         meshes.append(mesh_res)
         # plot_mesh(mesh.mesh)
     logger.info("Built %i meshes", len(meshes))
-    return meshes
+    map_res = MapResult(max_value=max_height, map_name=map_name, map_objects=meshes)
+    return map_res
         
         # break
 

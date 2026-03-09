@@ -10,10 +10,20 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+
+
+def read_geojson(path):
+    
+    filename = path.stem
+    split_filename = filename.split("-")
+    map_name = f"{split_filename[1]}-{split_filename[2]}"
+    gdf = gpd.read_file(path)
+    return gdf, map_name
+
 READERS = {
     ".csv": pd.read_csv,
     ".pickle": pd.read_pickle,
-    ".geojson": gpd.read_file,
+    ".geojson": read_geojson #gpd.read_file,
 }
 
 
@@ -30,6 +40,7 @@ def read_file(file: str, **kwargs) -> pd.DataFrame:
 
     reader = READERS[suffix]
     return reader(path, **kwargs)
+
 
 
 

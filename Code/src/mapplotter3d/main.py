@@ -52,16 +52,16 @@ def main():
     #TODO get Path from call
     logger.info("Loading map data")
     geojson_path = "C:\\Users\\Mark\\VisualStudioProjects\\MapPlotter3D\\MapPlotter3D\\Data\\Zone_maps\\geoBoundaries-DEU-ADM3.geojson"   #os.path.join("C:", "Users", "Mark", "VisualStudioProjects", "MapPlotter3D", "MapPlotter3D", "Data", "Zone_maps", "geoBoundaries-DEU-ADM3.geojson")
-    geo_df = read_file(geojson_path)
+    geo_df, map_name = read_file(geojson_path)
 
     #* Check completeness
     check_missing_row_names(df_reduced, geo_df)
 
     #* Generate Objects
-    meshes = build_meshes(geo_df, df, plot_key)
+    map = build_meshes(geo_df, df, plot_key, map_name)
 
     #* Generate Plot
-    generate_plot(meshes)
+    generate_plot(map)
 
 if __name__ == "__main__":
     main()
