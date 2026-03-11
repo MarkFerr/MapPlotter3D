@@ -64,7 +64,7 @@ def build_meshes(gdf, df, data_key, map_name) -> list[MeshResult]:
     normalized_df = normalize_df(df, max_height)
 
     meshes = []
-    for row in gdf.itertuples(index=False):
+    for row in gdf.itertuples(index=False): #todo loop through df instead of gdf!
         geom = row.geometry
         shape_id = row.shapeID
         shape_name = row.shapeName

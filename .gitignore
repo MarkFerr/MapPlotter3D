@@ -1,2 +1,4 @@
 .venv/
 Data/
+Code/src/mapplotter3d/utils/build_layers_manifest.py
+geo_api.py
