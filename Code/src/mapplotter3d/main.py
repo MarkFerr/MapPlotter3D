@@ -7,14 +7,15 @@ import argparse
 
 
 from mapplotter3d.mapplotter import run_mapplotter
+from mapplotter3d.ui.main_window import start_gui
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="My example project")
 
-    parser.add_argument("--data-path", required=True, help="Input file path")   #"C:\\Users\\Mark\\VisualStudioProjects\\MapPlotter3D\\MapPlotter3D\\Data\\Data\\municipality_test_data.csv"
-    parser.add_argument("--location-column", default="municipality", type=str, help="Column in the data that lists the region names")
-    parser.add_argument("--plot-column", default="population_test", type=str, help="Column that should be plotted")
+    # parser.add_argument("--data-path", required=True, help="Input file path")   #"C:\\Users\\Mark\\VisualStudioProjects\\MapPlotter3D\\MapPlotter3D\\Data\\Data\\municipality_test_data.csv"
+    # parser.add_argument("--location-column", default="municipality", type=str, help="Column in the data that lists the region names")
+    # parser.add_argument("--plot-column", default="population_test", type=str, help="Column that should be plotted")
     parser.add_argument("--logging-level", default=logging.INFO, type=int, help="Set logging level (0, 10, 20, 30, 40, 50)")
 
     return parser.parse_args()
@@ -33,7 +34,9 @@ def main():
 
     setup_logging(args.logging_level)
 
-    run_mapplotter(data_path=args.data_path, loc_column=args.location_column, plot_key=args.plot_column)
+    start_gui()
+
+    # run_mapplotter(data_path=args.data_path, loc_column=args.location_column, plot_key=args.plot_column)
 
 
 

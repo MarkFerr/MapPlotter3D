@@ -32,14 +32,17 @@ logger = logging.getLogger(__name__)
 
 class DataChooserPanel(QFrame):
     data_config_changed = Signal(dict)
+    plot_requested = Signal(dict)
 
     def __init__(self, parent=None):
         super().__init__(parent)
 
         self.file_path = None
         self.df = None
+        self.plottable_df = None
         self.column_info = []
         self.defaults = {}
+
 
         self.duplicate_value_combos = {}
         self.current_contributing_cols = []
@@ -239,7 +242,9 @@ class DataChooserPanel(QFrame):
             self.load_data_file(self.file_path)
 
     def _on_plot_clicked(self):
-        logger.info("Starting Plot")
+        logger.info("Sending plot request")
+        self.plot_requested.emit(self._current_config())
+
 
     def load_data_file(self, file_path: str):
         try:
@@ -276,31 +281,44 @@ class DataChooserPanel(QFrame):
     def _update_plot_button_state(self):
         logger.info("Updating plot button.")
 
+        #* Check if data is loaded
         if self.df is None:
             self.plot_btn.setEnabled(False)
             self.plot_btn.setToolTip("No data loaded yet")
             return
 
+        #* Get selected value and location column
         value_txt = self._optional_combo_value(self.value_combo)
         location_txt = self._optional_combo_value(self.location_combo)
 
+        #* Make sure value and location column are selected
         if not value_txt or not location_txt:
             self.plot_btn.setEnabled(False)
-            self.plot_btn.setToolTip("At least a value and location column")
+            self.plot_btn.setToolTip("Select at least a value and location column")
             return
 
+        #* Get the DataFrame filtered by the chosen values to remove ambiguous values
         filtered_df = self._get_filtered_df()
+
+        #* Check that there is still data after filtering 
         if filtered_df is None or filtered_df.empty:
             self.plot_btn.setEnabled(False)
             self.plot_btn.setToolTip("Current ambiguity filters remove all rows")
             return
 
+        #* Get remaining duplicates for location values
         duplicates_mask = filtered_df.duplicated(subset=[location_txt, value_txt], keep=False)
+
+        #* Check if there are still ambiguities to be resolved
         if duplicates_mask.any():
             self.plot_btn.setEnabled(False)
             self.plot_btn.setToolTip("Please resolve remaining ambiguities")
             return
 
+        #* All looks good, ready to plot!
+        logging.info("DataFrame looks good. Ready to plot!")
+        self.plottable_df = filtered_df.copy()
+        logging.info("Plottable DF: %s", self.plottable_df.info())
         self.plot_btn.setEnabled(True)
         self.plot_btn.setToolTip("Generate plot from selected data")
 
@@ -382,25 +400,25 @@ class DataChooserPanel(QFrame):
         numeric_cols = [c["name"] for c in self.column_info if c["numeric"]]
         all_cols = [c["name"] for c in self.column_info]
 
-        # Required numeric
+        #* Required numeric
         for combo in [self.value_combo]:
             combo.clear()
             combo.addItems(numeric_cols)
             combo.setEnabled(bool(numeric_cols))
 
-        # Optional numeric
+        #* Optional numeric
         self.value_combo.clear()
         self.value_combo.addItem("<none>")
         self.value_combo.addItems(numeric_cols)
         self.value_combo.setEnabled(True)
 
-        # Optional any type
+        #* Optional any type
         self.location_combo.clear()
         self.location_combo.addItem("<none>")
         self.location_combo.addItems(all_cols)
         self.location_combo.setEnabled(True)
 
-        # Optional any type
+        #* Optional any type
         self.label_combo.clear()
         self.label_combo.addItem("<none>")
         self.label_combo.addItems(all_cols)
@@ -455,23 +473,27 @@ class DataChooserPanel(QFrame):
     def _get_filtered_df(self):
         if self.df is None:
             return None
-
+        
         filtered_df = self.df.copy()
+        logging.info("Original Length: %s", len(self.df))
 
         for col, value in self._get_duplicate_filters().items():
             filtered_df = filtered_df[filtered_df[col] == value]
-
+        
+        logging.info("Filtered Length: %s", len(filtered_df))
         return filtered_df
+
+    def _current_config(self) -> dict:
+        return {
+            "file_path": self.file_path,
+            "value": self._optional_combo_value(self.value_combo),
+            "location": self._optional_combo_value(self.location_combo),
+            "label": self._optional_combo_value(self.label_combo),
+            "duplicate_filters": self._get_duplicate_filters(),
+        }
 
     def _emit_config(self):
         if self.df is None:
             return
 
-        config = {
-            "file_path": self.file_path,
-            # "dataframe": self.df,
-            "value": self._optional_combo_value(self.value_combo),
-            "location": self._optional_combo_value(self.location_combo),
-            "label": self._optional_combo_value(self.label_combo),
-        }
-        self.data_config_changed.emit(config)
+        self.data_config_changed.emit(self._current_config())
