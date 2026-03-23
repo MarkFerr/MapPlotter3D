@@ -1,15 +1,20 @@
-from vedo import Plotter, LegendBox, Mesh
+from vedo import Plotter, LegendBox, Mesh, color_map
+import matplotlib
+import logging
+
+#* set Logging
+logger = logging.getLogger(__name__)
 
 
-
-def generate_plot(meshes):
+def generate_plot(map_res):
+    logger.info("Generating 3D Plot")
     plt = Plotter()
     actors = []
 
-    for mesh in meshes:
+    for mesh in map_res.map_objects:
         actor = Mesh(mesh.mesh)
-        #todo get color automatically from palette depending on the value
-        actor.c("lightblue").alpha(1.0).lw(0)
+        color = color_map(mesh.plot_value, matplotlib.colormaps["jet"],0, map_res.max_value)
+        actor.c(color).alpha(1.0).lw(0)
         actor.name = mesh.shape_name
         actor.info = f"Shape_name: {mesh.shape_name}\nValue: {mesh.value}\nshape_id: {mesh.shape_id}"
         actors.append(actor)

@@ -15,6 +15,7 @@ def get_normalization(gdf) -> int:
 
 
 def normalize_df(df, max_value):
+    logger.info("Normalizing Data")
     normal_df = df.copy()
     numeric = normal_df.select_dtypes(include="number")
     normal_df[numeric.columns] = (

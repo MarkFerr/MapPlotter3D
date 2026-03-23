@@ -3,65 +3,39 @@ import os
 import logging
 import sys
 from pathlib import Path
-
-from mapplotter3d.io.data_reader import read_file
-from mapplotter3d.validation.data_row_checks import check_missing_row_names
-from mapplotter3d.geometry.mesh import build_meshes
-from mapplotter3d.utils.mesh_plotter import generate_plot
+import argparse
 
 
-#normalize Plot to:
-norm = 10000
-
-#height factor to calculate data
-height_factor = 0
-
-max_height = 0
+from mapplotter3d.mapplotter import run_mapplotter
 
 
-def setup_logging(level: int = logging.INFO) -> None:
+def parse_args():
+    parser = argparse.ArgumentParser(description="My example project")
+
+    parser.add_argument("--data-path", required=True, help="Input file path")   #"C:\\Users\\Mark\\VisualStudioProjects\\MapPlotter3D\\MapPlotter3D\\Data\\Data\\municipality_test_data.csv"
+    parser.add_argument("--location-column", default="municipality", type=str, help="Column in the data that lists the region names")
+    parser.add_argument("--plot-column", default="population_test", type=str, help="Column that should be plotted")
+    parser.add_argument("--logging-level", default=logging.INFO, type=int, help="Set logging level (0, 10, 20, 30, 40, 50)")
+
+    return parser.parse_args()
+
+
+def setup_logging(level: int) -> None:
     logging.basicConfig(
         level=level,
-        format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",    #
+        format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
         handlers=[logging.StreamHandler(sys.stdout)],
     )
 
+
 def main():
+    args = parse_args()
 
-    data_path = os.path.join("Data", "Data", "municipality_test_data.csv")
-    geojson_path = os.path.join("Data", "Zone_maps", "geoBoundaries-DEU-ADM3.geojson")
-    plot_key = "population_test"
+    setup_logging(args.logging_level)
 
-    #* set Logging
-    setup_logging()
-    logger = logging.getLogger(__name__)
+    run_mapplotter(data_path=args.data_path, loc_column=args.location_column, plot_key=args.plot_column)
 
-    #* Dir Setup
-    PROJECT_ROOT = Path(__file__).resolve().parents[3] # should point to MapPlotter3D dir
-    #TMP_DIR = PROJECT_ROOT / "Data" / "tmp"
-    OUT_DIR = PROJECT_ROOT / "Output"
-    
-    #* Load Data
-    #TODO get Path from call
-    logger.info("Loading data")
-    data_path = "C:\\Users\\Mark\\VisualStudioProjects\\MapPlotter3D\\MapPlotter3D\\Data\\Data\\municipality_test_data.csv"#os.path.join("C:", "Users", "Mark", "VisualStudioProjects", "MapPlotter3D", "MapPlotter3D", "Data", "Data", "municipality_test_data.csv")
-    df = read_file(data_path)
-    df_reduced = df[["municipality", plot_key]]
-   
-    #* Load GeoJSON
-    #TODO get Path from call
-    logger.info("Loading map data")
-    geojson_path = "C:\\Users\\Mark\\VisualStudioProjects\\MapPlotter3D\\MapPlotter3D\\Data\\Zone_maps\\geoBoundaries-DEU-ADM3.geojson"   #os.path.join("C:", "Users", "Mark", "VisualStudioProjects", "MapPlotter3D", "MapPlotter3D", "Data", "Zone_maps", "geoBoundaries-DEU-ADM3.geojson")
-    geo_df = read_file(geojson_path)
 
-    #* Check completeness
-    check_missing_row_names(df_reduced, geo_df)
-
-    #* Generate Objects
-    meshes = build_meshes(geo_df, df, plot_key)
-
-    #* Generate Plot
-    generate_plot(meshes)
 
 if __name__ == "__main__":
     main()

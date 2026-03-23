@@ -13,11 +13,13 @@ from mapplotter3d.utils.normalization import get_normalization, normalize_df
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class MeshResult:
     shape_id: int
     shape_name: str
     value: float
+    plot_value: float
     mesh: vtk.vtkPolyData
     top_indices:dict[str,np.ndarray]
 
@@ -45,7 +47,15 @@ class MeshResult:
         points.Modified()
         polydata.Modified()
 
-def build_meshes(gdf, df, data_key) -> list[MeshResult]:
+
+@dataclass
+class MapResult:
+    max_value: float
+    map_name: str
+    map_objects: list[MeshResult]
+
+
+def build_meshes(gdf, df, loc_key, data_key, map_name="", missing_rows=None) -> list[MeshResult]:
     logger.info("Building Meshes")
 
     #* Get value to Normalize to
@@ -54,13 +64,23 @@ def build_meshes(gdf, df, data_key) -> list[MeshResult]:
     normalized_df = normalize_df(df, max_height)
 
     meshes = []
-    for row in gdf.itertuples(index=False):
-        geom = row.geometry
-        shape_id = row.shapeID
-        shape_name = row.shapeName
+    for _, row in normalized_df.iterrows():
+        if missing_rows and row[loc_key] in missing_rows:
+            logger.info("Skipping plot for %s", row[loc_key])
+            continue
+        
+        logger.info("Building Mesh for %s", row[loc_key])
 
-        value = df.loc[df["municipality"] == shape_name, data_key].iloc[0]
-        normalized_value = normalized_df.loc[normalized_df["municipality"] == shape_name, data_key].iloc[0]
+        gdf_row = gdf[gdf["shapeName"] == row[loc_key]].iloc[0]
+        geom = gdf_row.geometry
+        if "shapeID" in gdf_row.keys():
+            shape_id = gdf_row.shapeID
+        else:
+            shape_id = None
+        shape_name = gdf_row.shapeName
+
+        value = df.loc[df[loc_key] == row[loc_key], data_key].iloc[0]
+        normalized_value = row[data_key]    #normalized_df.loc[normalized_df[loc_key] == shape_name, data_key].iloc[0]
 
         if isinstance(geom,Polygon):
             mesh, top_idx = mesh_from_polygon(poly=geom, height=normalized_value)
@@ -69,12 +89,13 @@ def build_meshes(gdf, df, data_key) -> list[MeshResult]:
         else:
             logger.info("Geometry type %s for %s not supported", type(geom), shape_name)
             continue
-        mesh_res = MeshResult(shape_id=shape_id, shape_name=shape_name, value=value, mesh=mesh, top_indices=top_idx)
+        mesh_res = MeshResult(shape_id=shape_id, shape_name=shape_name, value=value, plot_value=normalized_value, mesh=mesh, top_indices=top_idx)
 
         meshes.append(mesh_res)
         # plot_mesh(mesh.mesh)
     logger.info("Built %i meshes", len(meshes))
-    return meshes
+    map_res = MapResult(max_value=max_height, map_name=map_name, map_objects=meshes)
+    return map_res
         
         # break
 
