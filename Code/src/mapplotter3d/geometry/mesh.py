@@ -83,8 +83,10 @@ def build_meshes(gdf, df, loc_key, data_key, map_name="", missing_rows=None) -> 
         normalized_value = row[data_key]    #normalized_df.loc[normalized_df[loc_key] == shape_name, data_key].iloc[0]
 
         if isinstance(geom,Polygon):
+            logger.info("Is simple Polygon")
             mesh, top_idx = mesh_from_polygon(poly=geom, height=normalized_value)
         elif isinstance(geom, MultiPolygon):
+            logger.info("Is MultiPolygon")
             mesh, top_idx = mesh_from_multipolygon(mp=geom, height=normalized_value)
         else:
             logger.info("Geometry type %s for %s not supported", type(geom), shape_name)

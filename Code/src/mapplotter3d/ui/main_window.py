@@ -4,6 +4,7 @@ from pathlib import Path
 import logging
 from mapplotter3d.ui.data_chooser_panel import DataChooserPanel
 from mapplotter3d.ui.plot_area import PlotPanel
+from mapplotter3d.mapplotter import get_mapplott
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -55,14 +56,12 @@ class MainWindow(QMainWindow):
         if df is None or df.empty:
             return
         
-        print(type(df))
-
-        self.plot_area.plot_data(
-            df=df,
-            location_col=config["location"],
-            value_col=config["value"],
-            label_col=config["label"],
-        )
+        logger.info("Generating Map")
+        map_res = get_mapplott(df, loc_col=config["location"], val_col=config["value"], label_col=config["label"])
+        
+        logger.info("Setting map")
+        self.plot_area.set_map(map_res)
+        
 
 
 def start_gui():

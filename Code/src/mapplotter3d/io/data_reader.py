@@ -2,6 +2,7 @@ import logging
 from pathlib import Path
 
 import pandas as pd
+import geopandas as gpd
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +52,7 @@ READERS = {
     ".csv": read_csv_flexible,
     ".pickle": pd.read_pickle,
     ".xml": read_xml,
+    ".geojson": gpd.read_file,
 }
 
 

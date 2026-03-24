@@ -23,3 +23,5 @@ def generate_plot(map_res):
     plt.add(actors)
     plt.add_hover_legend(use_info=True)
     plt.show(__doc__, axes=1)
+
+
