@@ -5,3 +5,5 @@ geo_api.py
 generate_test_data.py
 Code\src\mapplotter3d\utils\test.py
 Code/src/mapplotter3d/geo_info/geoBoundariesCGAZ_ADM0.geojson
+tests.py
+Code/src/mapplotter3d/geo_info/geoBoundariesDEU_ADM0.geojson

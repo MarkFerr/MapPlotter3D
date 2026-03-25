@@ -146,10 +146,21 @@ def plot_mesh(polydata: vtk.vtkPolyData, title: str = "Mesh") -> None:
 
 
 def _extrude_polygon_to_polydata(poly: Polygon, height: float) -> vtk.vtkPolyData:
-    # exterior ring
-    coords = np.asarray(poly.exterior.coords, dtype=float)
+    # Clean invalid polygons if needed
+    if not poly.is_valid:
+        logger.info("Attempting to clean Polygon")
+        poly = poly.buffer(0)
 
-    # drop duplicate closing coordinate
+    if poly.is_empty:
+        raise ValueError("Polygon is empty after cleaning")
+
+    # If cleaning produced a MultiPolygon, keep the largest piece here
+    if isinstance(poly, MultiPolygon):
+        logger.info("Cleaning created Multipolygon. Keeping largest Polygon")
+        poly = max(poly.geoms, key=lambda g: g.area)
+
+    # Exterior ring
+    coords = np.asarray(poly.exterior.coords, dtype=float)
     if len(coords) >= 2 and np.allclose(coords[0], coords[-1]):
         coords = coords[:-1]
 
@@ -158,34 +169,40 @@ def _extrude_polygon_to_polydata(poly: Polygon, height: float) -> vtk.vtkPolyDat
         raise ValueError("Polygon exterior must have at least 3 unique points")
 
     points = vtk.vtkPoints()
-    points.SetNumberOfPoints(n)
-    for i, (x, y) in enumerate(coords[:, :2]):
-        points.SetPoint(i, float(x), float(y), 0.0)
+    for x, y in coords[:, :2]:
+        points.InsertNextPoint(float(x), float(y), 0.0)
 
-    polygon = vtk.vtkPolygon()
-    polygon.GetPointIds().SetNumberOfIds(n)
+    # Build a closed polyline contour, not a vtkPolygon cell
+    lines = vtk.vtkCellArray()
+    lines.InsertNextCell(n + 1)
     for i in range(n):
-        polygon.GetPointIds().SetId(i, i)
+        lines.InsertCellPoint(i)
+    lines.InsertCellPoint(0)  # close loop
 
-    cells = vtk.vtkCellArray()
-    cells.InsertNextCell(polygon)
+    contour = vtk.vtkPolyData()
+    contour.SetPoints(points)
+    contour.SetLines(lines)
 
-    poly2d = vtk.vtkPolyData()
-    poly2d.SetPoints(points)
-    poly2d.SetPolys(cells)
+    # Robust triangulation for concave contours
+    triangulator = vtk.vtkContourTriangulator()
+    triangulator.SetInputData(contour)
+    triangulator.Update()
 
-    tri = vtk.vtkTriangleFilter()
-    tri.SetInputData(poly2d)
-    tri.Update()
+    triangulated = vtk.vtkPolyData()
+    triangulated.ShallowCopy(triangulator.GetOutput())
 
     extr = vtk.vtkLinearExtrusionFilter()
-    extr.SetInputData(tri.GetOutput())
+    extr.SetInputData(triangulated)
     extr.SetExtrusionTypeToVectorExtrusion()
     extr.SetVector(0.0, 0.0, 1.0)
     extr.SetScaleFactor(float(height))
     extr.SetCapping(True)
     extr.Update()
 
+    clean = vtk.vtkCleanPolyData()
+    clean.SetInputData(extr.GetOutput())
+    clean.Update()
+
     out = vtk.vtkPolyData()
-    out.ShallowCopy(extr.GetOutput())
+    out.ShallowCopy(clean.GetOutput())
     return out
