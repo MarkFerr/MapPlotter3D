@@ -2,11 +2,13 @@ from vedo import Plotter, LegendBox, Mesh, color_map
 import matplotlib
 import logging
 
+from mapplotter3d.geometry.mesh import MapResult
+
 #* set Logging
 logger = logging.getLogger(__name__)
 
 
-def generate_plot(map_res):
+def generate_plot(map_res:list[MapResult]):
     logger.info("Generating 3D Plot")
     plt = Plotter()
     actors = []

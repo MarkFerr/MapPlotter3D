@@ -4,9 +4,10 @@ from vedo import Plotter, LegendBox, Mesh, color_map
 import matplotlib
 from pathlib import Path
 
+
 from mapplotter3d.io.data_reader import read_file
 from mapplotter3d.validation.data_row_checks import check_missing_row_names
-from mapplotter3d.geometry.mesh import build_meshes
+from mapplotter3d.geometry.mesh import build_meshes, MeshResult
 from mapplotter3d.utils.mesh_plotter import generate_plot
 from mapplotter3d.geo_info.geo_json_finder import find_fitting_geoJSON
 from mapplotter3d.io.downloader import download_geojson_temp
@@ -14,7 +15,7 @@ from mapplotter3d.io.downloader import download_geojson_temp
 #* set Logging
 logger = logging.getLogger(__name__)
 
-
+#! not used atm
 def run_mapplotter(data_path, loc_column, plot_key):
     
 
@@ -51,7 +52,7 @@ def run_mapplotter(data_path, loc_column, plot_key):
     generate_plot(map)
 
 
-def get_mapplott(df, loc_col, val_col, label_col):
+def get_mapplott(df, loc_col, val_col, label_col) -> list[MeshResult]:
     logger.info(f"DataFrame found with keys: {df.keys()}")
     df_reduced = df[[loc_col, val_col]]
 

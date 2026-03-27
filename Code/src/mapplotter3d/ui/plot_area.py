@@ -24,19 +24,13 @@ class PlotPanel(QFrame):
         # Persistent vedo plotter attached to the Qt VTK widget
         self.plt = Plotter(qt_widget=self.vtk_widget)
 
-        self.actors = []
+        self.actors = []    # vtkActor -> represents an actor in a rendered scene
         self.legend_box = None
         self._scene_initialized = False
-
-
-    # def plot_data(self, df, location_col, value_col, label_col):
-
-    #     logger.info("Plot request received")^
+        
 
     def set_map(self, map_res):
-        """
-        Replace the currently displayed map with a new one.
-        """
+
         # Remove old actors if present
         if self.actors:
             self.plt.remove(*self.actors)

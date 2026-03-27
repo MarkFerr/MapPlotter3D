@@ -69,6 +69,7 @@ class DataChooserPanel(QFrame):
         root.addWidget(self._build_plot_button())
         root.addWidget(self._build_status_group())
         root.addWidget(self._build_preview_group(), 1)
+        #todo add a section for custom geojson chooser (checkbox "Use custom geojson" and filepicker)
 
     def _build_source_group(self):
         box = QGroupBox("Data source")

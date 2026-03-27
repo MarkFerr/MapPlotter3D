@@ -64,6 +64,7 @@ def build_meshes(gdf, df, loc_key, data_key, map_name="", missing_rows=None) -> 
     normalized_df = normalize_df(df, max_height)
 
     meshes = []
+
     for _, row in normalized_df.iterrows():
         if missing_rows and row[loc_key] in missing_rows:
             logger.info("Skipping plot for %s", row[loc_key])
@@ -91,6 +92,9 @@ def build_meshes(gdf, df, loc_key, data_key, map_name="", missing_rows=None) -> 
         else:
             logger.info("Geometry type %s for %s not supported", type(geom), shape_name)
             continue
+
+        #! Doesn't quite make sense to create this shape here (with intention on easy hight adjustment on value changing) but then not using its intendet functions.
+        #todo either implement value change options when selecting different data/values or create vtkActors here already
         mesh_res = MeshResult(shape_id=shape_id, shape_name=shape_name, value=value, plot_value=normalized_value, mesh=mesh, top_indices=top_idx)
 
         meshes.append(mesh_res)
@@ -98,8 +102,6 @@ def build_meshes(gdf, df, loc_key, data_key, map_name="", missing_rows=None) -> 
     logger.info("Built %i meshes", len(meshes))
     map_res = MapResult(max_value=max_height, map_name=map_name, map_objects=meshes)
     return map_res
-        
-        # break
 
 
 def mesh_from_polygon(poly: Polygon, height: float) -> MeshResult:
@@ -110,7 +112,7 @@ def mesh_from_polygon(poly: Polygon, height: float) -> MeshResult:
     zmax = float(z.max())
     top_idx = np.flatnonzero(np.isclose(z, zmax))
 
-    return polydata, top_idx #MeshResult(shape_id=shape_id, shape_name=shape_name, mesh=polydata, top_indices=top_idx)
+    return polydata, top_idx
 
 
 def mesh_from_multipolygon(mp: MultiPolygon, height: float) -> MeshResult:
@@ -146,6 +148,7 @@ def plot_mesh(polydata: vtk.vtkPolyData, title: str = "Mesh") -> None:
 
 
 def _extrude_polygon_to_polydata(poly: Polygon, height: float) -> vtk.vtkPolyData:
+
     # Clean invalid polygons if needed
     if not poly.is_valid:
         logger.info("Attempting to clean Polygon")
@@ -154,7 +157,7 @@ def _extrude_polygon_to_polydata(poly: Polygon, height: float) -> vtk.vtkPolyDat
     if poly.is_empty:
         raise ValueError("Polygon is empty after cleaning")
 
-    # If cleaning produced a MultiPolygon, keep the largest piece here
+    # If cleaning produced a MultiPolygon, keep the largest piece here for now
     if isinstance(poly, MultiPolygon):
         logger.info("Cleaning created Multipolygon. Keeping largest Polygon")
         poly = max(poly.geoms, key=lambda g: g.area)
@@ -163,6 +166,11 @@ def _extrude_polygon_to_polydata(poly: Polygon, height: float) -> vtk.vtkPolyDat
     coords = np.asarray(poly.exterior.coords, dtype=float)
     if len(coords) >= 2 and np.allclose(coords[0], coords[-1]):
         coords = coords[:-1]
+
+    if poly.interiors:
+        logger.info("Polygon has interior ring(s) that are not handled...")
+        #todo handle these aswell!
+    
 
     n = len(coords)
     if n < 3:
